@@ -16,45 +16,26 @@ public class SnakeBody : MonoBehaviour
         // START DOES NOT GET CALLED IF THE GAME OBJECT IS CREATED BY A CUSTOM SCRIPT
     }
 
-    public void InitializeBody(bool tail, Vector2 position, E_MovementDirections direction, E_SnakeColor color, float spriteSideLength)
+    public void InitializeBody(bool tail, Vector2 position, E_MovementDirections direction, E_SnakeColor color, Vector2 scale)
     {
         spriteRenderer = GetComponent<SpriteRenderer>();
         spriteRenderer.sortingLayerName = "Snakes";
         transform.position = position;
         movementDirection = direction;
         snakeColor = color;
+        transform.localScale = scale;
         SetIsTail(tail);
         if (tail)
         {
             GridManager.Instance.DeclareNewTailPosition(color, position);
             
         }
-        DetermineSpriteSize(spriteSideLength);
-    }
-
-    public void DetermineSpriteSize(float spriteSideLength)
-    {
-        float worldSideLength = spriteRenderer.sprite.bounds.size.x;
-        float scale = spriteSideLength / worldSideLength;
-        transform.localScale = new Vector2(scale, scale);
+        
     }
 
     public void SetIsTail(bool _isTail)
     {
         isTail = _isTail;
-        SetSprite(isTail);
-    }
-    
-    private void SetSprite(bool isTail)
-    {
-        if (isTail)
-        {
-            spriteRenderer.sprite = GameManager.instance.spriteReferences.snakeTail;
-        }
-        else
-        {
-            spriteRenderer.sprite = GameManager.instance.spriteReferences.snakeBody;
-        }
     }
 
     public void UpdateBody()
@@ -70,32 +51,22 @@ public class SnakeBody : MonoBehaviour
 
     }
 
-
-
-    void Update()
+     public void SetSprite(Sprite sprite)
     {
-        if (isTail)
-        {
-            switch (movementDirection)
-            {
-                case E_MovementDirections.None:
-                    break;
-                case E_MovementDirections.Left:
-                    spriteRenderer.transform.rotation = Quaternion.Euler(0, 90, 0);
-                    break;
-                case E_MovementDirections.Right:
-                    spriteRenderer.transform.rotation = Quaternion.Euler(0, 270, 0);
-                    break;
-                case E_MovementDirections.Up:
-                    spriteRenderer.transform.rotation = Quaternion.Euler(0, 180, 0);
-                    break;
-                case E_MovementDirections.Down:
-                    spriteRenderer.transform.rotation = Quaternion.Euler(0, 0, 0);
-                    break;
-            }
-        }
+        spriteRenderer.sprite = sprite;
     }
 
-    
+    public void SetColor(Color color)
+    {
+        spriteRenderer.color = color;
+    }
+
+    public void SetRenderOrder(int order)
+    {
+        spriteRenderer.sortingOrder = order;
+    }
 
 }
+
+   
+    

@@ -129,6 +129,7 @@ GameObject:
   m_Component:
   - component: {fileID: 162448061}
   - component: {fileID: 162448062}
+  - component: {fileID: 162448063}
   m_Layer: 0
   m_Name: Map
   m_TagString: Untagged
@@ -165,7 +166,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 77961d66f4081d54c8d2b85d1e04eb69, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gridDimensions: {x: 240, y: 170}
+  gridDimensions: {x: 120, y: 85}
+--- !u!114 &162448063
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 162448060}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a56ba7f0ee5cf495dbdd8296bc1da953, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &519420028
 GameObject:
   m_ObjectHideFlags: 0
@@ -638,7 +651,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   spriteReferences: {fileID: 11400000, guid: 060f9a7d6fa33df4387e0ee9941efe28, type: 2}
-  customUpdateDeltaTime: 0.2
+  foodGenerationInterval: 2
+  customUpdateDeltaTime: 0.15
   startingSnakeLengths: 4
 --- !u!4 &1286632334
 Transform:

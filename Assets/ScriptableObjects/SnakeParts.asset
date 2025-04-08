@@ -12,6 +12,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 80e6ed6f8b1e77c4e8fdedfca565d328, type: 3}
   m_Name: SnakeParts
   m_EditorClassIdentifier: 
-  snakeBody: {fileID: 21300000, guid: 6858813d0f1f28b4cafee677b3e2e49b, type: 3}
-  snakeHead: {fileID: 21300000, guid: 37616095ebf53744c950962f33663458, type: 3}
-  snakeTail: {fileID: 21300000, guid: 24726326f0d24dc41875ec34f94e95b2, type: 3}
+  snakeHeadUp: {fileID: -3252757596025353577, guid: cfaefebb87ed445bc8093f69c3aff95a, type: 3}
+  snakeHeadDown: {fileID: -6854801067047936884, guid: 2f74fdc79c24c405a9ecac43ece2d8e3, type: 3}
+  snakeHeadLeft: {fileID: -6702244069390154853, guid: cd5a657b8fc5c4453b527cc18fafe0fe, type: 3}
+  snakeHeadRight: {fileID: 7587527173961072947, guid: 8c533cc7258ad416088018ebecd2bde9, type: 3}
+  snakeTailLeft: {fileID: -6108097152939252179, guid: 683c42878b80045c5afa5552675a523d, type: 3}
+  snakeTailRight: {fileID: -2542272835747916194, guid: e714aee61657a487088f2c1a65624d7b, type: 3}
+  snakeTailUp: {fileID: -444241385568439413, guid: 66fc9576c7ca441d3a3fc8a6f7c4b4a6, type: 3}
+  snakeTailDown: {fileID: 2750249231403333431, guid: 428bc9af29e8d4519b88fbf8f9fa6e22, type: 3}
+  snakeBodyHorizontal: {fileID: 5183476676852997877, guid: 26fe64225ccba4714ac357bf18e9d1a5, type: 3}
+  snakeBodyVertical: {fileID: -8697133744877224016, guid: 1877059a3656e4d13a2c4ae7167af04c, type: 3}
+  snakeBodyUpLeft: {fileID: 2999098643290886539, guid: 32329be71809c4a2ab011438493684d7, type: 3}
+  snakeBodyUpRight: {fileID: -4986953961950147090, guid: d2074b1a2df56448aa7de65d0c4cd4e4, type: 3}
+  snakeBodyDownLeft: {fileID: 8171884408360701465, guid: f93432101fa19449a8c2e0a1a1531390, type: 3}
+  snakeBodyDownRight: {fileID: -5512783819148346509, guid: 013c323035bc84c66a2b2e7a4608a15f, type: 3}
+  Food: {fileID: -7832214784768987486, guid: d93f90378e970400db29c32a54b70643, type: 3}

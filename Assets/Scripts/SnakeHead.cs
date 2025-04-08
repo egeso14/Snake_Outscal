@@ -1,6 +1,7 @@
 using NUnit.Framework;
 using System.Collections.Generic;
 using System.Threading;
+using System.Xml.Serialization;
 using UnityEngine;
 
 
@@ -30,12 +31,15 @@ public class SnakeHead : MonoBehaviour
     private GridManager gridManager;
     private E_SnakeColor my_color;
     private SpriteRenderer spriteRenderer;
-    private float spriteSideLen;
+    private Vector2 spriteScale;
+
+    private SpriteReferences spriteReferences;
 
 
     // Update is called once per frame
     void Update()
     {
+        
         timer += Time.deltaTime;
         if (timer > customUpdateDeltaTime)
         {
@@ -47,9 +51,10 @@ public class SnakeHead : MonoBehaviour
     {
         E_MovementDirections oldDirection = movementDirection;
         PollInputToGetDirection();
+        FixDirectionForConstraints(oldDirection, movementDirection);
         if (oldDirection != movementDirection)
         {
-            GridManager.Instance.DeclareIntentionToTurn(transform.position, oldDirection);
+            GridManager.Instance.DeclareIntentionToTurn(transform.position, movementDirection);
             Debug.Log("intention to turn is recognized");
         }
         if (gridManager.IsCellOccupied(transform.position, movementDirection))
@@ -59,7 +64,9 @@ public class SnakeHead : MonoBehaviour
             return;
         }
 
+        
         transform.position = GridManager.Instance.AskForNextPosition(transform.position, movementDirection);
+        gridManager.DeclareHeadPosition(my_color, transform.position);
 
         var food = gridManager.GetFoodAtCell(transform.position, movementDirection);
         if (food != E_Food.None)
@@ -67,9 +74,8 @@ public class SnakeHead : MonoBehaviour
             gridManager.EatFoodAtCell(transform.position, movementDirection);
             GrowSnake();
         }
-
-        RotateHeadSprite();
         UpdateBodyComponents();
+        SetSprites(0);
     }
 
     public void InitializeSnake(List<Vector2> headToToePositions, E_SnakeColor color, float spriteSideLength)
@@ -77,16 +83,16 @@ public class SnakeHead : MonoBehaviour
         customUpdateDeltaTime = GameManager.instance.GetCustomUpdateDeltaTime();
         timer = 0;
         spriteRenderer = GetComponent<SpriteRenderer>();
-        spriteRenderer.sprite = GameManager.instance.spriteReferences.snakeHead;
         spriteRenderer.sortingLayerName = "Snakes";
         gridManager = GridManager.Instance;
         movementDirection = E_MovementDirections.Up;
         snakeBodyComponents = new List<SnakeBody>();
-        spriteSideLen = spriteSideLength;
+        spriteReferences = GameManager.instance.spriteReferences;
 
         my_color = color;
         transform.position = headToToePositions[0];
-        DetermineSpriteSize(spriteSideLen);
+        spriteScale = DetermineSpriteSize(spriteSideLength);
+        transform.localScale = spriteScale;
 
         for (int i = 1; i < headToToePositions.Count; i++)
         {
@@ -95,14 +101,16 @@ public class SnakeHead : MonoBehaviour
             SnakeBody bodyComponent = bodyObject.GetComponent<SnakeBody>();
             if (i == headToToePositions.Count - 1)
             {
-                bodyComponent.InitializeBody(true, headToToePositions[i], E_MovementDirections.Up, color, spriteSideLength); 
+                bodyComponent.InitializeBody(true, headToToePositions[i], E_MovementDirections.Up, color, spriteScale); 
             }
             else
             {
-                bodyComponent.InitializeBody(false, headToToePositions[i], E_MovementDirections.Up, color, spriteSideLength);
+                bodyComponent.InitializeBody(false, headToToePositions[i], E_MovementDirections.Up, color, spriteScale);
             }
             snakeBodyComponents.Add(bodyComponent);
         }
+        
+        
     }
 
     public void UpdateBodyComponents()
@@ -110,6 +118,15 @@ public class SnakeHead : MonoBehaviour
         foreach (var bodyComponent in snakeBodyComponents)
         {
             bodyComponent.UpdateBody();
+        }
+    }
+
+    private void FixDirectionForConstraints(E_MovementDirections oldDirection, E_MovementDirections newDirection)
+    {
+        if (newDirection == GetOppositeDirection(oldDirection))
+        {
+            movementDirection = oldDirection;
+            return;
         }
     }
 
@@ -124,15 +141,16 @@ public class SnakeHead : MonoBehaviour
         SnakeBody bodyComponent = bodyObject.GetComponent<SnakeBody>();
 
         Vector2 newTailPosition = gridManager.AskForNextPosition(lastTailPosition, GetOppositeDirection(tailDirection));
-        bodyComponent.InitializeBody(true, newTailPosition, tailDirection, my_color, spriteSideLen);
+        bodyComponent.InitializeBody(true, newTailPosition, tailDirection, my_color, spriteScale);
+        SetSprites(snakeBodyComponents.Count - 1);
+
     }
 
-    public void DetermineSpriteSize(float spriteSideLength)
+    public Vector2 DetermineSpriteSize(float spriteSideLength)
     {
-        Debug.Log(spriteRenderer.sprite);
-        float worldSideLength = spriteRenderer.sprite.bounds.size.x;
+        float worldSideLength = spriteReferences.snakeHeadUp.bounds.size.x;
         float scale = spriteSideLength / worldSideLength;
-        transform.localScale = new Vector2(scale, scale);
+        return new Vector2(scale, scale);
     }
 
     private void PollInputToGetDirection()
@@ -198,26 +216,121 @@ public class SnakeHead : MonoBehaviour
         }
     }
 
-    private void RotateHeadSprite()
+    private void SetSprites(int startIndex)
     {
-
+        spriteRenderer.color = my_color == E_SnakeColor.Blue ? Color.white : Color.green;
+        spriteRenderer.sortingOrder = 900 + 1;
+        // set head sprite
         switch (movementDirection)
         {
-            case E_MovementDirections.None:
-                break;
             case E_MovementDirections.Left:
-                spriteRenderer.transform.rotation = Quaternion.Euler(0, 90, 0);
+                spriteRenderer.sprite = GameManager.instance.spriteReferences.snakeHeadLeft;
                 break;
             case E_MovementDirections.Right:
-                spriteRenderer.transform.rotation = Quaternion.Euler(0, 270, 0);
+                spriteRenderer.sprite = GameManager.instance.spriteReferences.snakeHeadRight;
                 break;
             case E_MovementDirections.Up:
-                spriteRenderer.transform.rotation = Quaternion.Euler(0, 0, 0);
+                spriteRenderer.sprite = GameManager.instance.spriteReferences.snakeHeadUp;
                 break;
             case E_MovementDirections.Down:
-                spriteRenderer.transform.rotation = Quaternion.Euler(0, 180, 0);
+                spriteRenderer.sprite = GameManager.instance.spriteReferences.snakeHeadDown;
                 break;
         }
+        
+        E_MovementDirections directionOfLastBody = movementDirection;
 
+        //iterate over bodies and set their sprites
+        for (int i = startIndex; i < snakeBodyComponents.Count; i++)
+        {
+            SnakeBody body = snakeBodyComponents[i];
+            body.SetColor(my_color == E_SnakeColor.Blue ? Color.white : Color.green);
+            body.SetRenderOrder(900 - i); 
+            if (body.isTail)
+            {
+                switch (directionOfLastBody)
+                {
+                    case E_MovementDirections.Left:
+                        body.SetSprite(spriteReferences.snakeTailLeft);
+                        break;
+                    case E_MovementDirections.Right:
+                        body.SetSprite(spriteReferences.snakeTailRight);
+                        break;
+                    case E_MovementDirections.Up:
+                        body.SetSprite(spriteReferences.snakeTailUp);
+                        break;
+                    case E_MovementDirections.Down:
+                        body.SetSprite(spriteReferences.snakeTailDown);
+                        break;
+                }
+                continue;
+            }
+            
+
+            // body parts that are not head or tail
+            switch (directionOfLastBody)
+            {
+                case E_MovementDirections.Left:
+                    if (body.movementDirection == E_MovementDirections.Up)
+                    {
+                        body.SetSprite(spriteReferences.snakeBodyDownLeft);
+                    }
+                    else if (body.movementDirection == E_MovementDirections.Down)
+                    {
+                        body.SetSprite(spriteReferences.snakeBodyUpLeft);
+                    }
+                    else
+                    {
+                        body.SetSprite(spriteReferences.snakeBodyHorizontal);
+                    }
+                    break;
+                case E_MovementDirections.Right:
+                    if (body.movementDirection == E_MovementDirections.Up)
+                    {
+                        body.SetSprite(spriteReferences.snakeBodyDownRight);
+                    }
+                    else if (body.movementDirection == E_MovementDirections.Down)
+                    {
+                        body.SetSprite(spriteReferences.snakeBodyUpRight);
+                    }
+                    else
+                    {
+                        body.SetSprite(spriteReferences.snakeBodyHorizontal);
+                    }
+                    break;
+                case E_MovementDirections.Up:
+                    if (body.movementDirection == E_MovementDirections.Left)
+                    {
+                        body.SetSprite(spriteReferences.snakeBodyUpRight);
+                    }
+                    else if (body.movementDirection == E_MovementDirections.Right)
+                    {
+                        body.SetSprite(spriteReferences.snakeBodyUpLeft);
+                    }
+                    else
+                    {
+                        body.SetSprite(spriteReferences.snakeBodyVertical);
+                    }
+                    break;
+                case E_MovementDirections.Down:
+                    if (body.movementDirection == E_MovementDirections.Left)
+                    {
+                        body.SetSprite(spriteReferences.snakeBodyDownRight);
+                    }
+                    else if (body.movementDirection == E_MovementDirections.Right)
+                    {
+                        body.SetSprite(spriteReferences.snakeBodyDownLeft);
+                    }
+                    else
+                    {
+                        body.SetSprite(spriteReferences.snakeBodyVertical);
+                    }
+                    break;
+            }
+
+            directionOfLastBody = body.movementDirection;
+            
+        }
     }
+
+        
 }

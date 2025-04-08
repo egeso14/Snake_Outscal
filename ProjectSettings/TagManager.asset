@@ -50,5 +50,8 @@ TagManager:
   - name: Snakes
     uniqueID: 2495785861
     locked: 0
+  - name: Food
+    uniqueID: 2350850653
+    locked: 0
   m_RenderingLayers:
   - Default

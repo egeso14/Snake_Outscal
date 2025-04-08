@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.UIElements;
 public enum E_SnakeColor
 {
@@ -40,8 +41,8 @@ public class GridManager : MonoBehaviour
     [SerializeField] private Cell[,] cells;
     [SerializeField] private Dictionary<(int, int), Vector2> gridToWorldPositions;
     [SerializeField] private Dictionary<Vector2, (int, int)> worldToGridPositions;
-    private int startingSnakeLengths;
 
+    private int startingSnakeLengths;
     // caching variables
     private Vector2 lastOldWorldPos;
     private (int, int) lastNewGridPos;
@@ -57,9 +58,7 @@ public class GridManager : MonoBehaviour
         {
             Destroy(this);
         }
-        
     }
-
     void Start()
     {
         // initialize variables
@@ -73,6 +72,7 @@ public class GridManager : MonoBehaviour
         float localCellCenterX = (bounds.size.x / gridDimensions.x) / 2;
         float localCellCenterY = (bounds.size.y / gridDimensions.y) / 2;
         startingSnakeLengths = GameManager.instance.startingSnakeLengths;
+        
 
         Vector2 gridLeftCornerWorldPosition = new Vector2(startingX + localCellCenterX, startingY - localCellCenterY);
         for (int i = 0; i < gridDimensions.y; i++)
@@ -118,11 +118,32 @@ public class GridManager : MonoBehaviour
         blueHead.GetComponent<SnakeHead>().InitializeSnake(blueHeadToToeList, E_SnakeColor.Blue, cellSideLength);
         greenHead.GetComponent<SnakeHead>().InitializeSnake(greenHeadToToeList, E_SnakeColor.Green, cellSideLength);
     }
-    void Update()
-    {
-        
-    }
 
+    public Vector2 GetLocationOfEmptyCell()
+    {
+        // generate food in random empty cell
+        List<(int, int)> emptyCells = new List<(int, int)>();
+        for (int i = 0; i < gridDimensions.y; i++)
+        {
+            for (int j = 0; j < gridDimensions.x; j++)
+            {
+                if (cells[j, i].occupation == E_SnakeColor.Empty)
+                {
+                    emptyCells.Add((j, i));
+                }
+            }
+        }
+        
+        int randomIndex = Random.Range(0, emptyCells.Count);
+        (int, int) randomCell = emptyCells[randomIndex];
+        return gridToWorldPositions[randomCell];
+    } 
+
+    public void AddFoodToCell(Vector2 position)
+    {
+        (int, int) gridPosition = worldToGridPositions[position];
+        cells[gridPosition.Item1, gridPosition.Item2].food = E_Food.RegularFood;
+    }
 
     public bool IsCellOccupied(Vector2 position, E_MovementDirections movementDirection)
     {
@@ -149,11 +170,14 @@ public class GridManager : MonoBehaviour
         }
     }
 
+
+
     public void EatFoodAtCell(Vector2 position, E_MovementDirections movementDirection)
     {
         if (position == lastOldWorldPos)
         {
             cells[lastNewGridPos.Item1, lastNewGridPos.Item2].food = E_Food.None;
+            FoodManager.instance.DestroyFoodObjectAt(gridToWorldPositions[lastNewGridPos]);
         }
         else
         {
