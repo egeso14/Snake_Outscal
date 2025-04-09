@@ -18,4 +18,5 @@ public class SpriteReferences : ScriptableObject
     public Sprite snakeBodyDownLeft;
     public Sprite snakeBodyDownRight;
     public Sprite Food;
+    public Sprite powerUp;
 }

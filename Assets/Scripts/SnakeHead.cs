@@ -20,7 +20,7 @@ public enum E_SnakeBodyParts
     Body,
     Tail
 }
-
+[RequireComponent(typeof(PowerUpTracker))]
 [RequireComponent(typeof(SpriteRenderer))]
 public class SnakeHead : MonoBehaviour
 {
@@ -32,6 +32,7 @@ public class SnakeHead : MonoBehaviour
     private E_SnakeColor my_color;
     private SpriteRenderer spriteRenderer;
     private Vector2 spriteScale;
+    private PowerUpTracker powerUps;
 
     private SpriteReferences spriteReferences;
 
@@ -44,6 +45,7 @@ public class SnakeHead : MonoBehaviour
         if (timer > customUpdateDeltaTime)
         {
             CustomUpdate();
+            UI_Controller.instance.UpdateScore(my_color, snakeBodyComponents.Count);
             timer = 0;
         }
     }
@@ -63,22 +65,28 @@ public class SnakeHead : MonoBehaviour
             GameManager.instance.GameOver(color);
             return;
         }
-
         
-        transform.position = GridManager.Instance.AskForNextPosition(transform.position, movementDirection);
-        gridManager.DeclareHeadPosition(my_color, transform.position);
 
         var food = gridManager.GetFoodAtCell(transform.position, movementDirection);
-        if (food != E_Food.None)
+        if (food == E_Food.MassGainer)
         {
             gridManager.EatFoodAtCell(transform.position, movementDirection);
             GrowSnake();
         }
+        if (food == E_Food.MassBurner)
+        {
+            gridManager.EatFoodAtCell(transform.position, movementDirection);
+            ShrinkSnake();
+        }
+
+
+        transform.position = GridManager.Instance.AskForNextPosition(transform.position, movementDirection);
+        gridManager.DeclareHeadPositionChange(my_color, transform.position);
         UpdateBodyComponents();
         SetSprites(0);
     }
 
-    public void InitializeSnake(List<Vector2> headToToePositions, E_SnakeColor color, float spriteSideLength)
+    public void InitializeSnake(List<Vector2> headToToePositions, E_SnakeColor color, Vector2 cellSizes)
     {
         customUpdateDeltaTime = GameManager.instance.GetCustomUpdateDeltaTime();
         timer = 0;
@@ -89,9 +97,13 @@ public class SnakeHead : MonoBehaviour
         snakeBodyComponents = new List<SnakeBody>();
         spriteReferences = GameManager.instance.spriteReferences;
 
+        powerUps = GetComponent<PowerUpTracker>();
+        powerUps.Initialize(color);
+        
+
         my_color = color;
         transform.position = headToToePositions[0];
-        spriteScale = DetermineSpriteSize(spriteSideLength);
+        spriteScale = DetermineSpriteSize(cellSizes);
         transform.localScale = spriteScale;
 
         for (int i = 1; i < headToToePositions.Count; i++)
@@ -142,15 +154,28 @@ public class SnakeHead : MonoBehaviour
 
         Vector2 newTailPosition = gridManager.AskForNextPosition(lastTailPosition, GetOppositeDirection(tailDirection));
         bodyComponent.InitializeBody(true, newTailPosition, tailDirection, my_color, spriteScale);
+        snakeBodyComponents.Add(bodyComponent);
         SetSprites(snakeBodyComponents.Count - 1);
 
+        
     }
 
-    public Vector2 DetermineSpriteSize(float spriteSideLength)
+    private void ShrinkSnake()
     {
-        float worldSideLength = spriteReferences.snakeHeadUp.bounds.size.x;
-        float scale = spriteSideLength / worldSideLength;
-        return new Vector2(scale, scale);
+        SnakeBody oldTail = snakeBodyComponents[snakeBodyComponents.Count - 1];
+        gridManager.DeclareTailPositionChange(my_color, oldTail.transform.position);
+        snakeBodyComponents.Remove(oldTail);
+        oldTail.DestroySnakeBody();
+
+        snakeBodyComponents[snakeBodyComponents.Count - 1].SetIsTail(true);
+    }
+
+    public Vector2 DetermineSpriteSize(Vector2 cellSizes)
+    {
+        float defaultSizeX = spriteReferences.snakeHeadUp.bounds.size.x;
+        float defaultSizeY = spriteReferences.snakeHeadUp.bounds.size.y;
+        Vector2 scale = new Vector2(cellSizes.x / defaultSizeY, cellSizes.y / defaultSizeY);
+        return scale;
     }
 
     private void PollInputToGetDirection()

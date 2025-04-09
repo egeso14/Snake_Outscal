@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Rendering;
 
 public class GameManager : MonoBehaviour
 {
@@ -7,6 +8,9 @@ public class GameManager : MonoBehaviour
     public float foodGenerationInterval;
     public float customUpdateDeltaTime;
     public int startingSnakeLengths;
+    public float powerUpsDuration;
+    public float powerUpsCooldown;
+    public int powerUpGenerationInterval;
     void Awake()
     {
         if (instance != null)
@@ -37,6 +41,11 @@ public class GameManager : MonoBehaviour
     public float GetFoodGenerationInterval()
     {
         return foodGenerationInterval;
+    }
+
+    public int GetPowerUpGenerationInterval()
+    {
+        return powerUpGenerationInterval;
     }
 
     public void GameOver(E_SnakeColor winnerColor)

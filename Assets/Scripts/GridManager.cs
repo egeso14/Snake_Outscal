@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.UIElements;
@@ -21,8 +22,16 @@ public enum E_Routing // identical to E_MovementDirections
 public enum E_Food
 {
     None,
-    RegularFood,
-    SuperFood,
+    MassGainer,
+    MassBurner,
+}
+
+public enum E_PowerUp 
+{
+    None,
+    Shield,
+    ScoreBoost,
+    SpeedUp
 }
 
 public struct Cell
@@ -31,6 +40,7 @@ public struct Cell
     public E_SnakeColor occupation;
     public E_Routing routing;
     public E_Food food;
+    public E_PowerUp powerUp;
 
 }
 public class GridManager : MonoBehaviour
@@ -41,6 +51,7 @@ public class GridManager : MonoBehaviour
     [SerializeField] private Cell[,] cells;
     [SerializeField] private Dictionary<(int, int), Vector2> gridToWorldPositions;
     [SerializeField] private Dictionary<Vector2, (int, int)> worldToGridPositions;
+    
 
     private int startingSnakeLengths;
     // caching variables
@@ -87,7 +98,11 @@ public class GridManager : MonoBehaviour
             }
         }
 
-        float cellSideLength = bounds.size.x / gridDimensions.x;
+        float cellSideLengthX = bounds.size.x / gridDimensions.x;
+        float cellSideLengthY = bounds.size.y / gridDimensions.y;
+
+        Debug.Log(bounds.size.x * 1.1);
+        Debug.Log(bounds.size.y * 1.1);
 
         // create the snakes
         // they should start at 1/3 and 2/3 of the grid respectively
@@ -115,8 +130,8 @@ public class GridManager : MonoBehaviour
         blueHead.AddComponent<SnakeHead>();
         greenHead.AddComponent<SnakeHead>();
 
-        blueHead.GetComponent<SnakeHead>().InitializeSnake(blueHeadToToeList, E_SnakeColor.Blue, cellSideLength);
-        greenHead.GetComponent<SnakeHead>().InitializeSnake(greenHeadToToeList, E_SnakeColor.Green, cellSideLength);
+        blueHead.GetComponent<SnakeHead>().InitializeSnake(blueHeadToToeList, E_SnakeColor.Blue, new Vector2(cellSideLengthX * 1.1f, cellSideLengthY * 1.1f));
+        greenHead.GetComponent<SnakeHead>().InitializeSnake(greenHeadToToeList, E_SnakeColor.Green, new Vector2(cellSideLengthX * 1.1f, cellSideLengthY * 1.1f));
     }
 
     public Vector2 GetLocationOfEmptyCell()
@@ -139,10 +154,10 @@ public class GridManager : MonoBehaviour
         return gridToWorldPositions[randomCell];
     } 
 
-    public void AddFoodToCell(Vector2 position)
+    public void AddFoodToCell(Vector2 position, E_Food foodType)
     {
         (int, int) gridPosition = worldToGridPositions[position];
-        cells[gridPosition.Item1, gridPosition.Item2].food = E_Food.RegularFood;
+        cells[gridPosition.Item1, gridPosition.Item2].food = foodType;
     }
 
     public bool IsCellOccupied(Vector2 position, E_MovementDirections movementDirection)
@@ -176,13 +191,17 @@ public class GridManager : MonoBehaviour
     {
         if (position == lastOldWorldPos)
         {
+            FoodGenerator.instance.DestroyFoodObjectAt(gridToWorldPositions[lastNewGridPos]
+                                                        ,cells[lastNewGridPos.Item1, lastNewGridPos.Item2].food);
             cells[lastNewGridPos.Item1, lastNewGridPos.Item2].food = E_Food.None;
-            FoodManager.instance.DestroyFoodObjectAt(gridToWorldPositions[lastNewGridPos]);
         }
         else
         {
             (int, int) gridPositionOld = worldToGridPositions[position];
             (int, int) gridPositionNew = GetNextPositionOnGrid(gridPositionOld, movementDirection);
+           
+            FoodGenerator.instance.DestroyFoodObjectAt(gridToWorldPositions[gridPositionNew],
+                                                       cells[gridPositionNew.Item1, gridPositionNew.Item2].food);
             cells[gridPositionNew.Item1, gridPositionNew.Item2].food = E_Food.None;
         }
     }
@@ -244,7 +263,7 @@ public class GridManager : MonoBehaviour
         (int, int) oldGridPosition = worldToGridPositions[oldPosition];
         cells[oldGridPosition.Item1, oldGridPosition.Item2].routing = routing_direction;
     }
-    public void DeclareHeadPosition(E_SnakeColor color, Vector2 newPosition)
+    public void DeclareHeadPositionChange(E_SnakeColor color, Vector2 newPosition)
     {
         // we will update the cells to reflect the change
         (int, int) newGridPosition = worldToGridPositions[newPosition];

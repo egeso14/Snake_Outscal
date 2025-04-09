@@ -66,6 +66,11 @@ public class SnakeBody : MonoBehaviour
         spriteRenderer.sortingOrder = order;
     }
 
+    public void DestroySnakeBody()
+    {
+        Destroy(gameObject);
+    }
+
 }
 
    
