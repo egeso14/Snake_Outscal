@@ -45,6 +45,10 @@ public class SnakeHead : MonoBehaviour
         if (timer > customUpdateDeltaTime)
         {
             CustomUpdate();
+            if (powerUps.HasPowerUp(E_PowerUp.SpeedUp))
+            {
+                CustomUpdate();
+            }
             UI_Controller.instance.UpdateScore(my_color, snakeBodyComponents.Count);
             timer = 0;
         }
@@ -59,7 +63,7 @@ public class SnakeHead : MonoBehaviour
             GridManager.Instance.DeclareIntentionToTurn(transform.position, movementDirection);
             Debug.Log("intention to turn is recognized");
         }
-        if (gridManager.IsCellOccupied(transform.position, movementDirection))
+        if (gridManager.IsCellOccupied(transform.position, movementDirection) && !powerUps.HasPowerUp(E_PowerUp.Shield))
         {
             E_SnakeColor color = my_color == E_SnakeColor.Blue ? E_SnakeColor.Green : E_SnakeColor.Blue;
             GameManager.instance.GameOver(color);
@@ -78,7 +82,12 @@ public class SnakeHead : MonoBehaviour
             gridManager.EatFoodAtCell(transform.position, movementDirection);
             ShrinkSnake();
         }
-
+        var powerUp = gridManager.GetPowerUpAtCell(transform.position, movementDirection);
+        if (powerUp != E_PowerUp.None)
+        {
+            gridManager.ConsumePowerUpAtCell(transform.position, movementDirection);
+            powerUps.ActivatePowerUp(powerUp);
+        }
 
         transform.position = GridManager.Instance.AskForNextPosition(transform.position, movementDirection);
         gridManager.DeclareHeadPositionChange(my_color, transform.position);
@@ -145,18 +154,28 @@ public class SnakeHead : MonoBehaviour
     private void GrowSnake()
     {
         snakeBodyComponents[snakeBodyComponents.Count - 1].SetIsTail(false);
+
         E_MovementDirections tailDirection = snakeBodyComponents[snakeBodyComponents.Count - 1].movementDirection;
         Vector2 lastTailPosition = snakeBodyComponents[snakeBodyComponents.Count - 1].transform.position;
 
         GameObject bodyObject = new GameObject();
         bodyObject.AddComponent<SnakeBody>();
         SnakeBody bodyComponent = bodyObject.GetComponent<SnakeBody>();
-
         Vector2 newTailPosition = gridManager.AskForNextPosition(lastTailPosition, GetOppositeDirection(tailDirection));
+        
+        if (powerUps.HasPowerUp(E_PowerUp.ScoreBoost))
+        {
+            GameObject bodyObject2 = new GameObject();
+            bodyObject2.AddComponent<SnakeBody>();
+            SnakeBody bodyComponent2 = bodyObject2.GetComponent<SnakeBody>();
+            bodyComponent2.InitializeBody(false, newTailPosition, tailDirection, my_color, spriteScale);
+            snakeBodyComponents.Add(bodyComponent2);
+            newTailPosition = gridManager.AskForNextPosition(newTailPosition, GetOppositeDirection(tailDirection));
+        }
+        
         bodyComponent.InitializeBody(true, newTailPosition, tailDirection, my_color, spriteScale);
         snakeBodyComponents.Add(bodyComponent);
         SetSprites(snakeBodyComponents.Count - 1);
-
         
     }
 

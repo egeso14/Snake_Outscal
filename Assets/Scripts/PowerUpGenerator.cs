@@ -42,20 +42,22 @@ public class PowerUpGenerator : MonoBehaviour
 
     void GeneratePowerUp()
     {
-        E_Food powerUpType = RandomlyGeneratePowerUpType();
+        E_PowerUp powerUpType = RandomlyGeneratePowerUpType();
         if (numberOfPowerUps >= totalPowerUpLimit)
         {
             return;
         }
         Vector2 randomPosition = GridManager.Instance.GetLocationOfEmptyCell();
-        CreateFoodObjectAt(randomPosition, foodType);
-        GridManager.Instance.AddFoodToCell(randomPosition, foodType);
+        CreatePowerUpObjectAt(randomPosition, powerUpType);
+        GridManager.Instance.AddPowerUpToCell(randomPosition, powerUpType);
 
     }
 
-    private E_Food RandomlyGeneratePowerUpType()
+    private E_PowerUp RandomlyGeneratePowerUpType()
     {
-        E_Food result = Random.Range(0, 2) == 0 ? E_Food.MassBurner : E_Food.MassGainer;
+        int randomValue = Random.Range(0, 3);
+        E_PowerUp result = randomValue == 0 ? E_PowerUp.Shield :
+                                                (randomValue == 1 ? E_PowerUp.ScoreBoost : E_PowerUp.SpeedUp);
         return result;
 
     }
@@ -67,31 +69,38 @@ public class PowerUpGenerator : MonoBehaviour
         GameObject powerUpObject = new GameObject(powerUpTypePrefix + "PowerUp");
         powerUpObject.transform.position = position;
         SpriteRenderer spriteRenderer = powerUpObject.AddComponent<SpriteRenderer>();
-        spriteRenderer.sprite = GameManager.instance.spriteReferences.;
+        spriteRenderer.sprite = GameManager.instance.spriteReferences.powerUp;
         spriteRenderer.sortingLayerName = "MapBorders";
-        if (foodType == E_Food.MassBurner)
+        if (powerUpType ==  E_PowerUp.ScoreBoost)
+        {
+            spriteRenderer.color = Color.red;
+        }
+        if (powerUpType == E_PowerUp.Shield)
+        {
+            spriteRenderer.color = Color.blue;
+        }
+        if (powerUpType == E_PowerUp.SpeedUp)
         {
             spriteRenderer.color = Color.green;
         }
-        if (foodType == E_Food.MassGainer) numberOfGainers++;
-        else numberOfBurners++;
-
+        powerUpObject.transform.localScale = new Vector3(0.2f, 0.2f, 1f);
+        numberOfPowerUps++;
         powerUpObjects[position] = powerUpObject;
     }
 
 
 
-    public void DestroyFoodObjectAt(Vector2 position, E_Food foodType)
+    public void DestroyPowerUpObjectAt(Vector2 position, E_PowerUp powerUpType)
     {
         // Find the food object at the given position and destroy it
         if (powerUpObjects.ContainsKey(position))
         {
             Destroy(powerUpObjects[position]);
             powerUpObjects.Remove(position);
-            if (foodType == E_Food.MassGainer) numberOfGainers--;
-            else numberOfBurners--;
+            numberOfPowerUps--;
+            return;
         }
-
+        Debug.LogWarning("PowerUp not found at position: " + position);
 
     }
 }

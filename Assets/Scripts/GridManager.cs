@@ -154,6 +154,44 @@ public class GridManager : MonoBehaviour
         return gridToWorldPositions[randomCell];
     } 
 
+    public void AddPowerUpToCell(Vector2 position, E_PowerUp powerUpType)
+    {
+        (int, int) gridPosition = worldToGridPositions[position];
+        cells[gridPosition.Item1, gridPosition.Item2].powerUp = powerUpType;
+    }
+
+    public E_PowerUp GetPowerUpAtCell(Vector2 position, E_MovementDirections movementDirection)
+    {
+        if (position == lastOldWorldPos)
+        {
+            return cells[lastNewGridPos.Item1, lastNewGridPos.Item2].powerUp;
+        }
+        else
+        {
+            (int, int) gridPositionOld = worldToGridPositions[position];
+            (int, int) gridPositionNew = GetNextPositionOnGrid(gridPositionOld, movementDirection);
+            return cells[gridPositionNew.Item1, gridPositionNew.Item2].powerUp;
+        }
+    }
+
+    public void ConsumePowerUpAtCell(Vector2 position, E_MovementDirections movementDirection)
+    {
+        if (position == lastOldWorldPos)
+        {
+            PowerUpGenerator.instance.DestroyPowerUpObjectAt(gridToWorldPositions[lastNewGridPos],
+                                                       cells[lastNewGridPos.Item1, lastNewGridPos.Item2].powerUp);
+            cells[lastNewGridPos.Item1, lastNewGridPos.Item2].powerUp = E_PowerUp.None;
+        }
+        else
+        {
+            (int, int) gridPositionOld = worldToGridPositions[position];
+            (int, int) gridPositionNew = GetNextPositionOnGrid(gridPositionOld, movementDirection);
+            PowerUpGenerator.instance.DestroyPowerUpObjectAt(gridToWorldPositions[gridPositionNew],
+                                                       cells[gridPositionNew.Item1, gridPositionNew.Item2].powerUp);
+            cells[gridPositionNew.Item1, gridPositionNew.Item2].powerUp = E_PowerUp.None;
+        }
+    }
+
     public void AddFoodToCell(Vector2 position, E_Food foodType)
     {
         (int, int) gridPosition = worldToGridPositions[position];
@@ -184,7 +222,6 @@ public class GridManager : MonoBehaviour
             return cells[gridPositionNew.Item1, gridPositionNew.Item2].food;
         }
     }
-
 
 
     public void EatFoodAtCell(Vector2 position, E_MovementDirections movementDirection)

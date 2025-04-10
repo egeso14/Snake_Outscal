@@ -133,7 +133,7 @@ public class UI_Controller : MonoBehaviour
     public void UpdateScore(E_SnakeColor color, int score)
     {
         TextMeshProUGUI textToUpdate = color == E_SnakeColor.Blue ? blueScoreText : greenScoreText;
-        textToUpdate.text = "Score: " + score.ToString();
+        textToUpdate.text = score.ToString();
     }
 
 
@@ -146,6 +146,8 @@ public class UI_Controller : MonoBehaviour
         
         appropriatePowerUpPanel.panel.SetActive(true);
         appropriatePowerUpPanel.text.text = appropriatePowerUpPanel.name + maxTime.ToString();
+        activeTimers.Add(appropriatePowerUpPanel);
+        appropriatePowerUpPanel.timer = maxTime;
 
 
     }
@@ -158,6 +160,7 @@ public class UI_Controller : MonoBehaviour
                                                 appropriateUI.speedUpPanel);
         
         appropriatePowerUpPanel.panel.SetActive(false);
+        activeTimers.Remove(appropriatePowerUpPanel);
     }
 
     public void IndicatePowerUpsOnCooldown(E_SnakeColor color)
@@ -177,7 +180,7 @@ public class UI_Controller : MonoBehaviour
         for (int i = 0; i < activeTimers.Count; i++)
         {
             activeTimers[i].timer -= Time.fixedDeltaTime;
-            activeTimers[i].text.text = activeTimers[i].text + activeTimers[i].timer.ToString();
+            activeTimers[i].text.text = activeTimers[i].name + activeTimers[i].timer.ToString();
         }
     }
 }

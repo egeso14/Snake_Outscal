@@ -7,12 +7,15 @@ public class PowerUpTracker : MonoBehaviour
     public float powerUpMaxDuration;
     public float remainingCooldown;
     public E_SnakeColor my_color;
+    public List<E_PowerUp> powerUpTypes;
     public Dictionary<E_PowerUp, float> powerUpToRemainingDuration;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Awake()
     {
         powerUpCooldown = GameManager.instance.powerUpsCooldown;
         powerUpMaxDuration = GameManager.instance.powerUpsDuration;
+        powerUpTypes = new List<E_PowerUp> { E_PowerUp.Shield, E_PowerUp.ScoreBoost, E_PowerUp.SpeedUp };
+        powerUpToRemainingDuration = new Dictionary<E_PowerUp, float>{{ E_PowerUp.Shield, 0}, {E_PowerUp.SpeedUp, 0}, {E_PowerUp.ScoreBoost,0}};
     }
 
     // Update is called once per frame
@@ -43,17 +46,21 @@ public class PowerUpTracker : MonoBehaviour
     {
         powerUpToRemainingDuration[powerUp] = powerUpMaxDuration;
         UI_Controller.instance.AddPowerUp(my_color, powerUp, powerUpMaxDuration);
+        remainingCooldown = powerUpCooldown;
     }
 
     private void TickPowerUps()
     {
-        foreach (var powerUp in powerUpToRemainingDuration.Keys)
+        
+        foreach (var powerUp in powerUpTypes)
         {
-            powerUpToRemainingDuration[powerUp] -= Time.deltaTime;
-            if (powerUpToRemainingDuration[powerUp] <= 0)
+            if (powerUpToRemainingDuration[powerUp] > 0)
             {
-                powerUpToRemainingDuration.Remove(powerUp);
-                UI_Controller.instance.RemovePowerUp(my_color, powerUp);
+                powerUpToRemainingDuration[powerUp] -= Time.deltaTime;
+                if (powerUpToRemainingDuration[powerUp] <= 0)
+                {
+                    UI_Controller.instance.RemovePowerUp(my_color, powerUp);
+                }
             }
         }
     }
@@ -65,7 +72,7 @@ public class PowerUpTracker : MonoBehaviour
 
     public bool HasPowerUp(E_PowerUp powerUp)
     { 
-        return powerUpToRemainingDuration.ContainsKey(powerUp);
+        return powerUpToRemainingDuration[powerUp] > 0;
     }
 
 }
