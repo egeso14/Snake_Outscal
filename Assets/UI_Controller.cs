@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class PlayerUiElements
 {
@@ -44,6 +46,7 @@ public class UI_Controller : MonoBehaviour
     private PlayerUiElements greenPlayerUiElements;
     private PlayerUiElements bluePlayerUiElements;
 
+    [SerializeField] private GameObject pauseMenu;
     private List<PowerUpPanelContainer> activeTimers;
 
     void Awake()
@@ -120,9 +123,18 @@ public class UI_Controller : MonoBehaviour
         blueShieldPanel.SetActive(false);
         blueScoreBoostPanel.SetActive(false);
         blueSpeedUpPanel.SetActive(false);
-    }
 
         
+    }
+
+    void Update()
+    {
+      if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            OnEscapeKeyPressed();
+        }  
+    }
+
 
     // Update is called once per frame
     void FixedUpdate()
@@ -183,4 +195,63 @@ public class UI_Controller : MonoBehaviour
             activeTimers[i].text.text = activeTimers[i].name + activeTimers[i].timer.ToString();
         }
     }
+
+    public void OnEscapeKeyPressed()
+    {
+        if (Time.timeScale == 1)
+        {
+            Time.timeScale = 0;
+            DisplayPauseMenu();
+
+        }
+        else
+        {
+            Time.timeScale = 1;
+            HidePauseMenu();
+        }
+    }
+    public void DisplayPauseMenu()
+    {
+        pauseMenu.SetActive(true);
+        foreach (Transform child in pauseMenu.transform)
+        {
+            Button childButton = child.gameObject.GetComponent<Button>();
+            if (child.gameObject.CompareTag("QuitButton"))
+            {
+                childButton.onClick.AddListener(() => 
+                {
+                     Application.Quit(); 
+                     HidePauseMenu();
+                });
+            }
+            else if (child.gameObject.CompareTag("ResumeButton"))
+            {
+                childButton.onClick.AddListener(() => 
+                {
+                     Time.timeScale = 1; 
+                     HidePauseMenu();
+                });
+
+            }
+            else if (child.gameObject.CompareTag("RestartButton"))
+            {
+                childButton.onClick.AddListener(() => 
+                { 
+                    SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex); 
+                    HidePauseMenu();
+                       
+                });
+            }
+        }
+    }
+    public void HidePauseMenu()
+    {
+        foreach (Transform child in pauseMenu.transform)
+        {
+            Button childButton = child.gameObject.GetComponent<Button>();
+            childButton.onClick.RemoveAllListeners();
+        }
+        pauseMenu.SetActive(false);
+    }
+
 }
