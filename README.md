@@ -10,3 +10,5 @@ Dev Log:
     -implemented three power-ups.
     -made a basic UI.
     -added input detection to move the snake.
+
+Video: https://youtu.be/vZby_rUfgHo
